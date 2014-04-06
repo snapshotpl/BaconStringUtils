@@ -22,6 +22,9 @@
             "BaconStringUtils": "src/"
         }
     },
+    "bin": [
+        "bin/update-unidecoder-tables.php"
+    ],
     "require-dev": {
         "zendframework/zendframework": "2.*",
         "phpunit/PHPUnit": "3.7.*",
