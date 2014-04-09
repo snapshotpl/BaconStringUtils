@@ -10,13 +10,23 @@
 $argv = $_SERVER['argv'];
 
 if (!isset($argv[1])) {
-    echo "You must supply a path to a tar.gz package containing a python\n"
-       . "release of Unidecode. You can find them at:\n"
-       . "https://pypi.python.org/pypi/Unidecode/\n";
-    exit(1);
-}
+    $dom = new DOMDocument('1.0', 'utf-8');
+    @$dom->loadHTMLFile('https://pypi.python.org/pypi/Unidecode');
+    $url = @$dom->getElementById('download-button')->getElementsByTagName('a')->item(0)->getAttribute('href');
 
-$path = $argv[1];
+    if (empty($url) || filter_var($url, FILTER_VALIDATE_URL) === false) {
+        echo "We cannot autodiscover file url.\n";
+        echo "Download package manually and pass path as argument.\n";
+        exit(1);
+    }
+    $urlParts = explode('/', $url);
+    $filename = end($urlParts);
+
+    @file_put_contents($filename, fopen($url, 'r'));
+    $path = $filename;
+} else {
+    $path = $argv[1];
+}
 
 if (!is_file($path) || !is_readable($path)) {
     echo "Supplied path is not a file or not readable\n";
@@ -39,6 +49,8 @@ try {
     echo "Caught exception while opening archive: " . $e->getMessage() . "\n";
     exit(1);
 }
+
+unlink($path);
 
 // Seems like it worked, let's clean the table directory and generate new ones
 foreach (glob(__DIR__ . '/../src/BaconStringUtils/UniDecoder/*') as $table) {
